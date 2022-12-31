@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
+
 
 app = FastAPI()
 app.title = 'Movies'
@@ -10,7 +11,7 @@ movies = [
 		"id": 1,
 		"title": "Avatar",
 		"overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
-		"year": "2009",
+		"year": 2009,
 		"rating": 7.8,
 		"category": "Acción"
 	},
@@ -18,7 +19,7 @@ movies = [
 		"id": 2,
 		"title": "Avatar 2",
 		"overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
-		"year": "2022",
+		"year": 2022,
 		"rating": 7.1,
 		"category": "Acción"
 	}
@@ -41,5 +42,18 @@ def get_movie(id: int):
 
 @app.get('/movies/', tags=['movies'])
 def get_movie_by_category(category: str, year: int):
-    movie = list(filter(lambda x: x['category'] == category and x['year'] == str(year), movies))
+    movie = list(filter(lambda x: x['category'] == category and x['year'] == year, movies))
     return movie
+
+@app.post('/movies', tags=['movies'])
+def create_movie(id: int = Body(), title: str = Body(), overview: str = Body(), year: int = Body(), rating: float = Body(), category: str = Body()):
+    movies.append({
+        'id': id,
+        'title': title,
+        'overview': overview,
+        'year': year,
+        'rating': rating,
+        'category': category
+    })
+
+    return movies
