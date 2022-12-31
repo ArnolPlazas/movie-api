@@ -38,3 +38,8 @@ def get_movie(id: int):
     movie = list(filter(lambda x: x['id'] == id, movies))
     return movie
 
+
+@app.get('/movies/', tags=['movies'])
+def get_movie_by_category(category: str, year: int):
+    movie = list(filter(lambda x: x['category'] == category and x['year'] == str(year), movies))
+    return movie
