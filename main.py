@@ -7,7 +7,7 @@ from fastapi.security import HTTPBearer
 
 
 from config.database import Session, engine, Base
-from models.movie import Movie
+from models.movie import Movie as MovieModel
 
 app = FastAPI()
 app.title = 'Movies'
@@ -96,6 +96,10 @@ def get_movie_by_category(category: str = Query(min_length=5, max_length=15)) ->
 
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
+    db = Session()
+    new_movie = MovieModel(**movie.dict())
+    db.add(new_movie)
+    db.commit()
     movies.append(movie)
     return JSONResponse(status_code=201, content={'message': 'a movie has been added'})
 
