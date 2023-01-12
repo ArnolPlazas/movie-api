@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from jwt_manager import create_token, validate_token
 from fastapi.security import HTTPBearer
+from fastapi.encoders import jsonable_encoder
 
 
 from config.database import Session, engine, Base
@@ -77,22 +78,31 @@ def login(user: User):
 
 
 @app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200, dependencies=[Depends(JWTBearer())])
-def get_movies() -> List[Movie] :
-    return JSONResponse(status_code=200, content=movies)
+def get_movies() -> List[Movie]:
+    db = Session()
+    result = db.query(MovieModel).all()
+    return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 @app.get('/movies/{id}', tags=['movies'], response_model=Movie)
 def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
-    movie = list(filter(lambda x: x['id'] == id, movies))
-    if len(movie) != 0:
-        return JSONResponse(content=movie)
+    db = Session()
+    result = db.query(MovieModel).filter(MovieModel.id == id).first()
+    if not result:
+        return JSONResponse(status_code=404, content={'message': "Don't found"})
     else:
-        return JSONResponse(status_code=404, content=[])
+        return JSONResponse(status_code=200, content=jsonable_encoder(result))
+        
+        
 
 
 @app.get('/movies/', tags=['movies'], response_model=List[Movie])
 def get_movie_by_category(category: str = Query(min_length=5, max_length=15)) -> List[Movie]:
-    movie_by_category = list(filter(lambda x: x['category'] == category, movies))
-    return JSONResponse(content=movie_by_category)
+    db = Session()
+    result = db.query(MovieModel).filter(MovieModel.category == category).all()
+    if not result:
+        return JSONResponse(status_code=404, content={'message': "Don't found"})
+    else:
+        return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
